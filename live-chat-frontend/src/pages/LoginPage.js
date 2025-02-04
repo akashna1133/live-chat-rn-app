@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -19,13 +20,33 @@ const LoginPage = () => {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm({
     resolver: yupResolver(validationSchema),
   });
 
-  const onSubmit = (data) => {
-    console.log("Login data:", data);
-    // Handle login logic
+  const onSubmit = async (data) => {
+    try {
+      // Send API request with form data
+      const response = await axios.post('http://localhost:3001/api/auth/login', {
+        email: data.email,
+        password: data.password,
+      });
+
+      const { token } = response.data;
+
+      // Save the token in localStorage (or sessionStorage)
+      localStorage.setItem('authToken', token);
+
+      // Redirect to chat page
+      navigate('/chat');
+    } catch (err) {
+      // Handle error and show error message in the UI
+      setError("email", {
+        type: "manual",
+        message: err.response?.data?.error || "Something went wrong",
+      });
+    }
   };
 
   return (

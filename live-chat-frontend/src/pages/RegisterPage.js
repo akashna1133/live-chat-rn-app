@@ -32,7 +32,7 @@ const RegisterPage = () => {
 
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post("http://localhost:3001/api/auth/register", data);
+      const response = await axios.post("http://localhost:3001/api/users/register", data);
 
       if (response.status === 200) {
         alert("Registration successful!");

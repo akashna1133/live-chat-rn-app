@@ -5,7 +5,6 @@ const connectDB = require("./config/db");
 const setupSocket = require("./config/socket");
 const routes = require("./routes");
 const cors = require('cors');
-
 dotenv.config();
 
 // Initialize Express

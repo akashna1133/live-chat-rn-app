@@ -1,57 +1,41 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
-const yup = require("yup");
-
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
-// Validation schema using Yup
-const registerValidationSchema = yup.object().shape({
-  name: yup.string().min(3).required(),
-  email: yup.string().email().required(),
-  password: yup.string().min(6).required(),
-  confirmPassword: yup
-    .string()
-    .oneOf([yup.ref("password"), null], "Passwords must match")
-    .required(),
-});
-
-// Register route
-router.post("/register", async (req, res) => {
+// Login
+router.post('/login', async (req, res) => {
+  console.log('Coming inside the login')
+  const { email, password } = req.body;
+  const secretKey = "sample_token";
+  
   try {
-    // Validate input using Yup
-    await registerValidationSchema.validate(req.body, { abortEarly: false });
-
-    const { name, email, password } = req.body;
-
-    // Check if the user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: "User already exists." });
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid email or password' });
     }
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Compare the provided password with the stored password hash
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log('User password :: ',isMatch )
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid email or password' });
+    }
 
-    // Create a new user
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword,
-    });
+    console.log('user id ::: ', user)
+    // Generate a JWT token
+    const token = jwt.sign({ userId: user._id }, secretKey , { expiresIn: '1h' });
+    console.log('User authenticated :: ',token )
 
-    // Save the user to the database
-    await user.save();
-
-    res.status(201).json({ message: "User registered successfully." });
+    res.json({ message: 'Login successful', token });
   } catch (error) {
-    // Handle validation or server errors
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ error: error.errors });
-    }
     console.error(error);
-    res.status(500).json({ error: "Internal server error." });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
 module.exports = router;
+
+

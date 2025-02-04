@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const userConnectionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -6,6 +6,7 @@ const userConnectionSchema = new mongoose.Schema({
   isOnline: { type: Boolean, default: true },
   lastSeen: { type: Date, default: null },
   deviceInfo: { type: String },
+  token: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 });
 
